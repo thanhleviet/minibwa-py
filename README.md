@@ -1,8 +1,8 @@
 # minibwa-py
 
 A pure-Python, stdlib-only subprocess wrapper for the
-[`minibwa`](https://bioconda.github.io/) sequence aligner. It shells out to the
-`minibwa` engine binary on your `PATH`, parses its SAM/PAF output into
+[`minibwa`](https://github.com/lh3/minibwa) sequence aligner. It shells out to
+the `minibwa` engine binary on your `PATH`, parses its SAM/PAF output into
 lightweight typed records, and gives you a clean, Pythonic API.
 
 > **Licensing in one line:** this wrapper is **MIT**. The `minibwa` *engine* it
@@ -38,6 +38,12 @@ for aln in minibwa.map(idx, "reads.fq", preset="sr", threads=8):
     print(aln.qname, aln.flag, aln.rname, aln.pos, aln.mapq)
 
 minibwa.version()                              # -> "0.1-r363"
+```
+
+```text
+read1 0 chr1 51 60
+read2 0 chr1 201 60
+read3 0 chr1 401 60
 ```
 
 `index()` returns an `Index` handle that you pass straight back to `map()`. You
@@ -88,6 +94,33 @@ with minibwa.map(idx, "reads.fq") as alns:
 Abandoning the iterator (breaking out, then letting it be garbage-collected)
 also cleans up, but the context manager makes it explicit.
 
+## Reference lengths and the SAM header
+
+In SAM mode the iterator consumes the `@` header lines for you (they are never
+yielded as records) and keeps them. `@SQ` lines are parsed into a
+name-to-length mapping, available once iteration has passed the header:
+
+```python
+alns = minibwa.map(idx, "reads.fq")
+records = list(alns)
+print(alns.reference_lengths)   # {'chr1': 600}
+print(alns.header)              # the raw '@HD' / '@SQ' / '@PG' lines
+```
+
+## Reusing a pre-built index
+
+If the index already exists on disk -- built earlier, or by the `minibwa index`
+CLI -- wrap it with `Index.from_prefix` instead of rebuilding:
+
+```python
+idx = minibwa.Index.from_prefix("ref.fa")   # no rebuild; just a handle
+for aln in minibwa.map(idx, "reads.fq"):
+    ...
+```
+
+`map()` also accepts a bare prefix string or any `os.PathLike` as its first
+argument, so `minibwa.map("ref.fa", "reads.fq")` works without a handle at all.
+
 ## Records
 
 `Alignment` exposes the 11 mandatory SAM fields with correct types
@@ -100,7 +133,10 @@ lazily-parsed, immutable `tags` mapping (e.g. `aln.tags["NM"]`).
 `is_reverse`, an `identity` property, and the same lazy `tags` mapping.
 
 SAM `POS` is **1-based**; PAF coordinates are **0-based half-open**. Each record
-stays faithful to its own format; nothing is silently normalized.
+stays faithful to its own format; nothing is silently normalized. The same read
+that aligns to the 51st base of `chr1` reports `pos == 51` as an `Alignment` but
+`tstart == 50` as a `PafRecord` -- one locus, two conventions. Reach for
+`Alignment.pos0` when you need the 0-based start.
 
 ## Binary discovery
 
@@ -121,6 +157,34 @@ minibwa.version(binary="/opt/minibwa/bin/minibwa")
   `.returncode`, and the captured `.stderr` (diagnostics are never swallowed).
 * `MinibwaParseError` (also a `ValueError`) -- a SAM/PAF line could not be
   parsed; carries the offending `.line` and (when from a stream) `.lineno`.
+
+All three inherit from `MinibwaError`, so you can catch one specifically or the
+whole family at once. `MinibwaParseError` is also a `ValueError`, so existing
+`except ValueError` handlers still catch malformed-line errors. For the
+streaming path the engine's exit status is checked at end-of-stream, so wrap the
+iteration:
+
+```python
+try:
+    alignments = list(minibwa.map(idx, "reads.fq"))
+except minibwa.MinibwaRunError as exc:
+    print("exit", exc.returncode)   # e.g. -6 (SIGABRT)
+    print(exc.stderr)               # the engine's own diagnostics, verbatim
+    raise
+```
+
+## Timeouts
+
+`index()`, `map()`, and `version()` all accept `timeout=` (seconds). For
+`output=` and `version()` it bounds the run-to-completion call; for the
+streaming path it is a deadline checked while iterating (and a bounded wait at
+finalize), so a stalled engine raises `MinibwaRunError` instead of hanging the
+caller forever:
+
+```python
+for aln in minibwa.map(idx, "reads.fq", timeout=300):
+    ...
+```
 
 ## Escape hatch
 
