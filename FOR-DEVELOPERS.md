@@ -194,7 +194,7 @@ ruff check . && ruff format --check . && pytest
 ## Documentation
 
 The API reference and guides are built with [Sphinx](https://www.sphinx-doc.org/)
-and published on [Read the Docs](https://minibwa-py.readthedocs.io). The source
+and published on [Read the Docs](https://minibwa-py.readthedocs.io/en/latest/index.html). The source
 lives under `docs/`: narrative pages (`index`, `install`, `quickstart`) are MyST
 Markdown, and the `docs/api/` pages pull docstrings straight from the code via
 `autodoc` + `napoleon`, so the reference can never drift from the source.
