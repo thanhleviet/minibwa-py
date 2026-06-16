@@ -9,6 +9,9 @@ dist/
 *.egg-info/
 .eggs/
 
+# Documentation build output
+docs/_build/
+
 # Test / coverage / lint caches
 .pytest_cache/
 .ruff_cache/
