@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Pytest
+        # minibwa is intentionally NOT installed: tier-3 integration tests
+        # auto-skip (proving the skip path), tiers 1-2 provide real coverage.
+        run: pytest -v
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tooling
+        run: python -m pip install build twine
+      - name: Build
+        run: python -m build
+      - name: Twine check
+        run: python -m twine check dist/*
+
+  # Optional, non-gating: exercise the real engine from bioconda.
+  # Kept commented out so it never blocks merges; enable opportunistically.
+  #
+  # integration:
+  #   runs-on: ubuntu-latest
+  #   continue-on-error: true
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: mamba-org/setup-micromamba@v1
+  #       with:
+  #         environment-name: minibwa-it
+  #         create-args: >-
+  #           python=3.12
+  #     - name: Install minibwa + package
+  #       shell: bash -el {0}
+  #       run: |
+  #         micromamba install -y -c bioconda -c conda-forge minibwa
+  #         python -m pip install -e ".[dev]"
+  #     - name: Integration tests
+  #       shell: bash -el {0}
+  #       run: pytest -m integration -v
