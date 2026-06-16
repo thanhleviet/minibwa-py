@@ -10,6 +10,9 @@ lightweight typed records, and gives you a clean, Pythonic API.
 > build, **installed by you**, and **not bundled** with this package. See
 > [Licensing](#licensing).
 
+**Documentation:** the full API reference and guides live at
+[minibwa-py.readthedocs.io](https://minibwa-py.readthedocs.io).
+
 ## Install
 
 ```bash
