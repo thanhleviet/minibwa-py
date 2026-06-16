@@ -190,3 +190,24 @@ Run everything locally:
 ```bash
 ruff check . && ruff format --check . && pytest
 ```
+
+## Documentation
+
+The API reference and guides are built with [Sphinx](https://www.sphinx-doc.org/)
+and published on [Read the Docs](https://minibwa-py.readthedocs.io). The source
+lives under `docs/`: narrative pages (`index`, `install`, `quickstart`) are MyST
+Markdown, and the `docs/api/` pages pull docstrings straight from the code via
+`autodoc` + `napoleon`, so the reference can never drift from the source.
+
+Build it locally:
+
+```bash
+pip install -e ".[docs]"
+sphinx-build -W --keep-going -b html docs docs/_build/html
+```
+
+The `-W` flag turns warnings into errors -- the same gate CI and Read the Docs
+enforce -- so a missing cross-reference or an undocumented new public symbol
+fails the build instead of silently degrading the site. The version is
+single-sourced from the installed package metadata, never hardcoded in
+`docs/conf.py`.
