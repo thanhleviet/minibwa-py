@@ -211,3 +211,20 @@ enforce -- so a missing cross-reference or an undocumented new public symbol
 fails the build instead of silently degrading the site. The version is
 single-sourced from the installed package metadata, never hardcoded in
 `docs/conf.py`.
+
+### Publishing to Read the Docs (one-time)
+
+The repository ships `.readthedocs.yaml`, so the hosting side is already
+configured -- it just needs to be connected once:
+
+1. Sign in at [readthedocs.org](https://readthedocs.org) and choose **Import a
+   Project**, then connect the GitHub account and pick this repository.
+2. **Name the project exactly `minibwa-py`.** Read the Docs derives the site
+   slug from the project name, and the published URL must be
+   `minibwa-py.readthedocs.io` to match the links in this file and the README.
+3. Leave the rest at the defaults and import. Read the Docs detects
+   `.readthedocs.yaml` automatically and runs the first build immediately.
+
+After that it rebuilds on every push to the default branch. Enable **Build pull
+requests** in the project's *Advanced Settings* to get a preview build (and the
+same `fail_on_warning` gate) on each PR.
