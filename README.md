@@ -11,7 +11,7 @@ lightweight typed records, and gives you a clean, Pythonic API.
 > [Licensing](#licensing).
 
 **Documentation:** the full API reference and guides live at
-[minibwa-py.readthedocs.io](https://minibwa-py.readthedocs.io).
+[minibwa-py.readthedocs.io](https://minibwa-py.readthedocs.io/en/latest/index.html).
 
 ## Install
 
