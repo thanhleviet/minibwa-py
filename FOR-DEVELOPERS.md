@@ -127,15 +127,17 @@ iterators wrapping it) implement `close()`, `__enter__`/`__exit__`, and
 either way the child is terminated (then killed if it won't terminate) and the
 temp file is unlinked. There is a dedicated test for exactly this.
 
-### 4. `@dataclass(slots=True)` is 3.10+; we target 3.9
+### 4. Records use explicit `__slots__`, not `@dataclass(slots=True)`
 
-We want low-overhead records *and* Python 3.9 support. The `slots=True` argument
-to `@dataclass` only exists from 3.10, so we use the **explicit class-attribute
-`__slots__`** form instead. There's a wrinkle: a `frozen=True` dataclass with
-`__slots__` plus field defaults can collide (the default class attribute fights
-the slot descriptor), so the records keep their lazy-tags cache in a slot and
-populate it via `object.__setattr__`, which is the sanctioned way to write to a
-frozen dataclass from inside its own methods.
+We want low-overhead, `__dict__`-free records. The package targets Python 3.10+,
+so `@dataclass(slots=True)` is available -- but we deliberately keep the
+**explicit class-attribute `__slots__`** form. There's a wrinkle that bites
+either way: a `frozen=True` dataclass mixing `__slots__` with field defaults can
+collide (the default class attribute fights the slot descriptor), so the records
+keep their lazy-tags cache in a slot and populate it via `object.__setattr__`,
+the sanctioned way to write to a frozen dataclass from inside its own methods.
+Hand-writing `__slots__` keeps that layout and the frozen-write pattern explicit
+rather than hidden behind a generated class.
 
 ### 5. SAM is 1-based, PAF is 0-based half-open -- the off-by-one footgun
 

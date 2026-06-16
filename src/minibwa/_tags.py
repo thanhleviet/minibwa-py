@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
-from typing import Union
 
 from .errors import MinibwaParseError
 
@@ -18,7 +17,7 @@ __all__ = ["TagValue", "parse_tags"]
 
 #: The value types a parsed optional tag can take: ``i`` -> int, ``f`` -> float,
 #: ``A``/``Z``/``H``/unknown -> str, ``B`` -> list.
-TagValue = Union[int, float, str, list]
+TagValue = int | float | str | list
 
 _INT_SUBTYPES = frozenset("cCsSiI")
 _FLOAT_SUBTYPES = frozenset("f")

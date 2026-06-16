@@ -36,7 +36,7 @@ class _IndexSlots:
     defaults raises ``'<name>' in __slots__ conflicts with class variable`` (the
     default becomes a class attribute that collides with the slot). Hoisting the
     slots to a base class sidesteps that while keeping the records allocation-
-    light and ``__dict__``-free on Python 3.9+.
+    light and ``__dict__``-free.
     """
 
     __slots__ = ("fasta", "meth", "prefix")

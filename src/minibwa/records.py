@@ -42,8 +42,8 @@ class _AlignmentSlots:
 
     A frozen dataclass that declares ``__slots__`` in its own body *and* gives a
     field a default collides (the default becomes a class attribute named like
-    the slot). Hoisting the slots here keeps the record ``__dict__``-free and
-    3.9-compatible.
+    the slot). Hoisting the slots here keeps the record ``__dict__``-free
+    without that collision.
     """
 
     __slots__ = (
@@ -214,7 +214,7 @@ class _PafRecordSlots:
     """Carry ``__slots__`` for :class:`PafRecord` on a base class.
 
     Same rationale as :class:`_AlignmentSlots`: keeps the frozen dataclass slim
-    and 3.9-compatible without the ``__slots__``/default collision.
+    and ``__dict__``-free without the ``__slots__``/default collision.
     """
 
     __slots__ = (
